@@ -631,11 +631,11 @@
   .video-nav-bar {
     background: #ffffff;
     border-bottom: 1px solid var(--border);
-    padding: 8px 18px;
+    padding: 6px 14px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    gap: 10px;
     flex-wrap: wrap;
   }
 
@@ -643,14 +643,14 @@
     background: #f1f5f9;
     border: 1px solid var(--border);
     color: var(--text-dark);
-    padding: 5px 12px;
+    padding: 4px 10px;
     border-radius: 6px;
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     font-weight: 600;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
     transition: background 0.15s;
     white-space: nowrap;
   }
@@ -670,18 +670,18 @@
   }
 
   .active-video-title {
-    font-size: 1.05rem;
+    font-size: 0.95rem;
     font-weight: 700;
     color: var(--text-dark);
     letter-spacing: -0.01em;
   }
 
   .active-video-badge {
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     font-weight: 700;
     background: var(--video-accent-soft);
     color: var(--video-accent);
-    padding: 2px 8px;
+    padding: 2px 7px;
     border-radius: 9999px;
     border: 1px solid #ddd6fe;
     white-space: nowrap;
@@ -690,7 +690,7 @@
   .video-top-actions {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
   }
 
   .btn-quiz-jump {
@@ -698,15 +698,15 @@
     color: #ffffff;
     border: none;
     border-radius: 6px;
-    padding: 5px 12px;
-    font-size: 0.78rem;
+    padding: 4px 10px;
+    font-size: 0.76rem;
     font-weight: 700;
     cursor: pointer;
     transition: background 0.15s;
     white-space: nowrap;
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
   }
 
   .btn-quiz-jump:hover {
@@ -714,12 +714,12 @@
   }
 
   .btn-drive-top {
-    background: #f1f5f9;
-    color: #334155;
+    background: #f8fafc;
     border: 1px solid var(--border);
+    color: #475569;
+    padding: 4px 9px;
     border-radius: 6px;
-    padding: 5px 10px;
-    font-size: 0.78rem;
+    font-size: 0.74rem;
     font-weight: 600;
     text-decoration: none;
     display: inline-flex;
@@ -734,8 +734,8 @@
   }
 
   .video-body-wrap {
-    padding: 16px 20px 24px 20px;
-    max-width: 920px;
+    padding: 14px 18px 24px 18px;
+    max-width: 900px;
     width: 100%;
     margin: 0 auto;
   }
@@ -746,11 +746,11 @@
     width: 100%;
     padding-top: 56.25%; /* 16:9 Aspect Ratio */
     background: #000000;
-    border-radius: 14px;
+    border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.18);
+    box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.22);
     border: 1px solid #cbd5e1;
-    margin-bottom: 24px;
+    margin-bottom: 16px;
   }
 
   .video-player-container iframe {
@@ -1504,7 +1504,7 @@
   <main class="content-area">
 
     <!-- Header area -->
-    <header class="content-header">
+    <header class="content-header" id="mainHeader">
       <div class="content-header-top">
         <div>
           <h1 class="content-title" id="pageHeading">All Lessons</h1>
@@ -1901,6 +1901,8 @@ function openVideo(id) {
   if (!activeVideo) return;
 
   haltAudio();
+  const mHead = document.getElementById("mainHeader");
+  if (mHead) mHead.style.display = "none";
   document.getElementById("viewDashboard").style.display = "none";
   document.getElementById("viewQuiz").style.display = "none";
   document.getElementById("viewResults").style.display = "none";
@@ -1951,7 +1953,8 @@ function openVideo(id) {
     iframe.src = "";
     html5Player.src = encodeURI(activeVideo.local_file);
     html5Player.style.display = "block";
-    html5Player.play().catch(e => console.log('Autoplay prevented:', e));
+    html5Player.pause();
+    html5Player.currentTime = 0;
   } else if (activeVideo.embed_url) {
     html5Player.pause();
     html5Player.style.display = "none";
@@ -2009,6 +2012,8 @@ function openQuiz(id) {
 
   closeVideo();
   haltAudio();
+  const mHead = document.getElementById("mainHeader");
+  if (mHead) mHead.style.display = "none";
 
   qIndex = 0;
   score = 0;
@@ -2037,6 +2042,8 @@ function openQuiz(id) {
 function goToDashboard() {
   closeVideo();
   haltAudio();
+  const mHead = document.getElementById("mainHeader");
+  if (mHead) mHead.style.display = "block";
   document.getElementById("viewVideo").style.display = "none";
   document.getElementById("viewQuiz").style.display = "none";
   document.getElementById("viewResults").style.display = "none";
@@ -2229,6 +2236,38 @@ function showResults() {
 
 function retakeQuiz() {
   openQuiz(activeQuiz.id);
+}
+
+// Keyboard Spacebar & Click Play/Pause Controls
+window.addEventListener("keydown", function(e) {
+  if (e.code === "Space" || e.key === " ") {
+    const activeTag = document.activeElement ? document.activeElement.tagName : "";
+    if (activeTag === "INPUT" || activeTag === "TEXTAREA") return;
+
+    const videoView = document.getElementById("viewVideo");
+    if (videoView && videoView.style.display !== "none") {
+      const html5Player = document.getElementById("videoPlayerEl");
+      if (html5Player && html5Player.style.display !== "none") {
+        e.preventDefault(); // Prevent page scrolling
+        if (html5Player.paused) {
+          html5Player.play();
+        } else {
+          html5Player.pause();
+        }
+      }
+    }
+  }
+});
+
+const videoPlayerEl = document.getElementById("videoPlayerEl");
+if (videoPlayerEl) {
+  videoPlayerEl.addEventListener("click", function() {
+    if (videoPlayerEl.paused) {
+      videoPlayerEl.play();
+    } else {
+      videoPlayerEl.pause();
+    }
+  });
 }
 
 // Initialize URL hash handling
