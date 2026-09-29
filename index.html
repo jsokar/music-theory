@@ -630,13 +630,16 @@
   /* ================= 3. IN-PAGE VIDEO PLAYER VIEW ================= */
   .video-nav-bar {
     background: #ffffff;
-    border-bottom: 1px solid var(--border);
-    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 14px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 10px;
     flex-wrap: wrap;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+    margin-bottom: 14px;
   }
 
   .back-btn {
@@ -734,7 +737,7 @@
   }
 
   .video-body-wrap {
-    padding: 14px 18px 24px 18px;
+    padding: 18px 18px 30px 18px;
     max-width: 900px;
     width: 100%;
     margin: 0 auto;
@@ -852,14 +855,23 @@
   }
 
   /* ================= 4. IN-PAGE QUIZ PLAYER VIEW ================= */
+  .quiz-header-card {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+    margin-bottom: 20px;
+  }
+
   .quiz-nav-bar {
     background: #ffffff;
-    border-bottom: 1px solid var(--border);
-    padding: 14px 24px;
+    padding: 8px 14px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
+    gap: 12px;
+    flex-wrap: wrap;
   }
 
   .active-quiz-title-wrap {
@@ -873,14 +885,14 @@
   }
 
   .active-quiz-title {
-    font-size: clamp(1.1rem, 1.8vw, 1.35rem);
+    font-size: clamp(1.05rem, 1.6vw, 1.25rem);
     font-weight: 800;
     color: var(--text-dark);
     letter-spacing: -0.015em;
   }
 
   .active-quiz-level-text {
-    font-size: clamp(0.9rem, 1.3vw, 1.05rem);
+    font-size: clamp(0.85rem, 1.2vw, 0.98rem);
     font-weight: 500;
     color: var(--text-muted);
     white-space: nowrap;
@@ -896,9 +908,9 @@
     background: var(--video-accent-soft);
     border: 1px solid #ddd6fe;
     color: var(--video-accent);
-    padding: 6px 12px;
-    border-radius: 8px;
-    font-size: 0.8rem;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.76rem;
     font-weight: 700;
     cursor: pointer;
     display: inline-flex;
@@ -913,12 +925,12 @@
   }
 
   .score-indicator {
-    font-size: 0.85rem;
+    font-size: 0.78rem;
     font-weight: 700;
     background: #f1f5f9;
     color: #334155;
     border: 1px solid var(--border);
-    padding: 5px 14px;
+    padding: 4px 11px;
     border-radius: 9999px;
     white-space: nowrap;
   }
@@ -937,8 +949,8 @@
   }
 
   .quiz-body-wrap {
-    padding: clamp(24px, 4vw, 42px) clamp(20px, 4vw, 38px);
-    max-width: 860px;
+    padding: 18px 18px 36px 18px;
+    max-width: 900px;
     width: 100%;
     margin: 0 auto;
   }
@@ -1533,25 +1545,25 @@
 
       <!-- 2.2 In-Page Video Player View -->
       <div id="viewVideo" style="display: none;">
-        <div class="video-nav-bar">
-          <button type="button" class="back-btn" onclick="goToDashboard()">
-            ◀ All Lessons
-          </button>
-          <div class="active-video-title-wrap">
-            <span class="active-video-title" id="activeVideoTitle">Video Title</span>
-            <span class="active-video-badge">🎬 Video Lesson</span>
-          </div>
-          <div class="video-top-actions">
-            <button type="button" class="btn-quiz-jump" id="topRelatedQuizBtn" onclick="launchVideoQuiz()" style="display: none;">
-              📝 Take Quiz
-            </button>
-            <a class="btn-drive-top" id="topDriveLink" href="" target="_blank" rel="noopener noreferrer">
-              Drive ↗
-            </a>
-          </div>
-        </div>
-
         <div class="video-body-wrap">
+          <div class="video-nav-bar">
+            <button type="button" class="back-btn" onclick="goToDashboard()">
+              ◀ All Lessons
+            </button>
+            <div class="active-video-title-wrap">
+              <span class="active-video-title" id="activeVideoTitle">Video Title</span>
+              <span class="active-video-badge">🎬 Video Lesson</span>
+            </div>
+            <div class="video-top-actions">
+              <button type="button" class="btn-quiz-jump" id="topRelatedQuizBtn" onclick="launchVideoQuiz()" style="display: none;">
+                📝 Take Quiz
+              </button>
+              <a class="btn-drive-top" id="topDriveLink" href="" target="_blank" rel="noopener noreferrer">
+                Drive ↗
+              </a>
+            </div>
+          </div>
+
           <!-- 16:9 Responsive Video Player: High-performance local HTML5 player + Drive fallback -->
           <div class="video-player-container">
             <video id="videoPlayerEl" controls playsinline style="display: none; position: absolute; top:0; left:0; width:100%; height:100%; object-fit: contain; background:#000;" src=""></video>
@@ -1589,26 +1601,28 @@
 
       <!-- 2.3 In-Page Quiz Player View -->
       <div id="viewQuiz" style="display: none;">
-        <div class="quiz-nav-bar">
-          <button type="button" class="back-btn" onclick="goToDashboard()">
-            ◀ All Lessons
-          </button>
-          <div class="active-quiz-title-wrap">
-            <span class="active-quiz-title" id="activeQuizTitle">Quiz Title</span>
-            <span class="active-quiz-level-text" id="activeQuizLevel">· Level 1</span>
-          </div>
-          <div class="quiz-nav-right">
-            <button type="button" class="btn-watch-video-link" id="quizRelatedVideoBtn" onclick="launchQuizVideo()" style="display: none;">
-              🎬 Watch Lesson Video
-            </button>
-            <span class="score-indicator" id="liveScore">Score: 0</span>
-          </div>
-        </div>
-        <div class="progress-track">
-          <div class="progress-fill" id="progressFill"></div>
-        </div>
-
         <div class="quiz-body-wrap">
+          <div class="quiz-header-card">
+            <div class="quiz-nav-bar">
+              <button type="button" class="back-btn" onclick="goToDashboard()">
+                ◀ All Lessons
+              </button>
+              <div class="active-quiz-title-wrap">
+                <span class="active-quiz-title" id="activeQuizTitle">Quiz Title</span>
+                <span class="active-quiz-level-text" id="activeQuizLevel">· Level 1</span>
+              </div>
+              <div class="quiz-nav-right">
+                <button type="button" class="btn-watch-video-link" id="quizRelatedVideoBtn" onclick="launchQuizVideo()" style="display: none;">
+                  🎬 Watch Lesson Video
+                </button>
+                <span class="score-indicator" id="liveScore">Score: 0</span>
+              </div>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" id="progressFill"></div>
+            </div>
+          </div>
+
           <div class="q-number-tag" id="qCounter">Question 1 of 10</div>
           <div class="q-text" id="qPrompt">Question prompt</div>
 
