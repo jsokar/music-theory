@@ -81,10 +81,8 @@
       position: absolute;
       top: 0;
       left: 0;
-      width: 140%;
-      height: 140%;
-      transform: scale(0.7142857);
-      transform-origin: top left;
+      width: 100%;
+      height: 100%;
       border: none;
     }
     ::-webkit-scrollbar {
@@ -405,8 +403,8 @@
 
       <!-- 16:9 Video Player Box -->
       <div class="relative w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-lg border border-slate-300">
-        <video id="videoPlayerEl" controls playsinline class="w-full h-full object-contain cursor-pointer" style="display:none;"></video>
-        <iframe id="videoIframe" src="" allow="autoplay; fullscreen" allowfullscreen class="w-full h-full border-none" style="display:none;"></iframe>
+        <video id="videoPlayerEl" controls playsinline class="w-full h-full object-contain" style="display:none;"></video>
+        <iframe id="videoIframe" src="" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true" class="w-full h-full border-none" style="display:none;"></iframe>
       </div>
 
       <!-- Video Details Box -->
@@ -1264,37 +1262,6 @@ function retryQuiz() {
   if (activeQuiz) openQuiz(activeQuiz.id);
 }
 
-// Keyboard Spacebar & Click Play/Pause Controls
-window.addEventListener("keydown", function(e) {
-  if (e.code === "Space" || e.key === " ") {
-    const activeTag = document.activeElement ? document.activeElement.tagName : "";
-    if (activeTag === "INPUT" || activeTag === "TEXTAREA") return;
-
-    const videoView = document.getElementById("viewVideo");
-    if (videoView && videoView.style.display !== "none") {
-      const html5Player = document.getElementById("videoPlayerEl");
-      if (html5Player && html5Player.style.display !== "none") {
-        e.preventDefault();
-        if (html5Player.paused) {
-          html5Player.play();
-        } else {
-          html5Player.pause();
-        }
-      }
-    }
-  }
-});
-
-const videoPlayerEl = document.getElementById("videoPlayerEl");
-if (videoPlayerEl) {
-  videoPlayerEl.addEventListener("click", function() {
-    if (videoPlayerEl.paused) {
-      videoPlayerEl.play();
-    } else {
-      videoPlayerEl.pause();
-    }
-  });
-}
 
 // Hash Routing
 function checkHash() {
