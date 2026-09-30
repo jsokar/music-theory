@@ -85,6 +85,33 @@
       height: 100%;
       border: none;
     }
+    #videoContainerWrap:fullscreen,
+    #videoContainerWrap:-webkit-full-screen,
+    #videoContainerWrap:-moz-full-screen {
+      width: 100vw !important;
+      height: 100vh !important;
+      max-width: 100vw !important;
+      max-height: 100vh !important;
+      background: #000000 !important;
+      border-radius: 0 !important;
+      border: none !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    #videoContainerWrap:fullscreen video,
+    #videoContainerWrap:fullscreen iframe,
+    #videoContainerWrap:-webkit-full-screen video,
+    #videoContainerWrap:-webkit-full-screen iframe {
+      width: 100% !important;
+      height: 100% !important;
+      max-width: 100% !important;
+      max-height: 100% !important;
+    }
+    #videoContainerWrap:fullscreen #floatingFullscreenBtn,
+    #videoContainerWrap:-webkit-full-screen #floatingFullscreenBtn {
+      z-index: 2147483647 !important;
+    }
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
@@ -392,6 +419,9 @@
           </div>
         </div>
         <div class="flex items-center gap-2">
+          <button id="navFullscreenBtn" onclick="toggleProtectedFullscreen()" title="Toggle Protected Fullscreen" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg transition">
+            <span id="navFsIcon">⛶</span> Fullscreen
+          </button>
           <button id="topRelatedQuizBtn" onclick="launchVideoQuiz()" style="display:none;" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-amber-700 bg-amber-50 hover:bg-amber-600 hover:text-white border border-amber-200 rounded-lg transition">
             📝 Take Quiz
           </button>
@@ -402,9 +432,13 @@
       </div>
 
       <!-- 16:9 Video Player Box -->
-      <div class="relative w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-lg border border-slate-300">
+      <div id="videoContainerWrap" class="relative w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-lg border border-slate-300 group">
         <video id="videoPlayerEl" controls playsinline class="w-full h-full object-contain" style="display:none;"></video>
         <iframe id="videoIframe" src="" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true" class="w-full h-full border-none" style="display:none;"></iframe>
+        <button id="floatingFullscreenBtn" onclick="toggleProtectedFullscreen()" title="Toggle Protected Fullscreen" class="absolute bottom-4 right-4 z-30 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/75 hover:bg-black text-white text-xs font-semibold backdrop-blur border border-white/20 shadow-md transition select-none">
+          <span id="fsBtnIcon">⛶</span>
+          <span id="fsBtnText">Fullscreen</span>
+        </button>
       </div>
 
       <!-- Video Details Box -->
@@ -938,8 +972,50 @@ function clearSearch() {
   handleSearch("");
 }
 
+// Fullscreen Control
+function toggleProtectedFullscreen() {
+  const wrap = document.getElementById("videoContainerWrap");
+  if (!wrap) return;
+
+  const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement);
+  if (!isFs) {
+    if (wrap.requestFullscreen) {
+      wrap.requestFullscreen().catch(err => console.log("Fullscreen request failed:", err));
+    } else if (wrap.webkitRequestFullscreen) {
+      wrap.webkitRequestFullscreen();
+    } else if (wrap.mozRequestFullScreen) {
+      wrap.mozRequestFullScreen();
+    }
+  } else {
+    if (document.exitFullscreen) {
+      document.exitFullscreen().catch(err => console.log("Exit fullscreen failed:", err));
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen();
+    } else if (document.mozCancelFullScreen) {
+      document.mozCancelFullScreen();
+    }
+  }
+}
+
+function updateFullscreenState() {
+  const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement);
+  const fsBtnText = document.getElementById("fsBtnText");
+  const fsBtnIcon = document.getElementById("fsBtnIcon");
+  const navFsIcon = document.getElementById("navFsIcon");
+  if (fsBtnText) fsBtnText.textContent = isFs ? "Exit Fullscreen" : "Fullscreen";
+  if (fsBtnIcon) fsBtnIcon.textContent = isFs ? "✕" : "⛶";
+  if (navFsIcon) navFsIcon.textContent = isFs ? "✕" : "⛶";
+}
+
+document.addEventListener("fullscreenchange", updateFullscreenState);
+document.addEventListener("webkitfullscreenchange", updateFullscreenState);
+document.addEventListener("mozfullscreenchange", updateFullscreenState);
+
 // Navigation & Screen Switching
 function goToDashboard() {
+  if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement) {
+    if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+  }
   closeVideo();
   haltAudio();
   document.getElementById("viewVideo").style.display = "none";
@@ -953,6 +1029,11 @@ function goToDashboard() {
 
 // Open Video Player
 function openVideo(id) {
+  // Guard against redundant re-execution if already playing this video
+  if (activeVideo && activeVideo.id === id && document.getElementById("viewVideo").style.display === "block") {
+    return;
+  }
+
   activeVideo = allItems.find(item => item.id === id && item.type === "video");
   if (!activeVideo) return;
 
@@ -985,28 +1066,46 @@ function openVideo(id) {
   const iframe = document.getElementById("videoIframe");
   const isLocalFile = window.location.protocol === "file:";
 
-  html5Player.onerror = function() {
-    if (activeVideo.embed_url) {
-      html5Player.pause();
-      html5Player.style.display = "none";
-      html5Player.src = "";
-      iframe.src = activeVideo.embed_url;
-      iframe.style.display = "block";
-    }
-  };
+  // Always reset and detach error handler first to avoid loops
+  html5Player.onerror = null;
 
   if (activeVideo.local_file && isLocalFile) {
+    // Local file mode: hide iframe, use native video tag
+    if (iframe.src && iframe.src !== "about:blank") {
+      iframe.src = "about:blank";
+    }
     iframe.style.display = "none";
-    iframe.src = "";
+
+    html5Player.onerror = function() {
+      // One-time fallback: detach immediately to avoid looping!
+      html5Player.onerror = null;
+      html5Player.pause();
+      html5Player.removeAttribute("src");
+      html5Player.load();
+      html5Player.style.display = "none";
+      if (activeVideo.embed_url) {
+        if (iframe.src !== activeVideo.embed_url) {
+          iframe.src = activeVideo.embed_url;
+        }
+        iframe.style.display = "block";
+      }
+    };
+
     html5Player.src = encodeURI(activeVideo.local_file);
     html5Player.style.display = "block";
     html5Player.pause();
     html5Player.currentTime = 0;
   } else if (activeVideo.embed_url) {
+    // Online / Embed mode: safely clean HTML5 player without triggering error event
     html5Player.pause();
+    html5Player.removeAttribute("src");
+    html5Player.load();
     html5Player.style.display = "none";
-    html5Player.src = "";
-    iframe.src = activeVideo.embed_url;
+
+    // Set iframe src ONLY if changed to prevent reloading and popping
+    if (iframe.src !== activeVideo.embed_url) {
+      iframe.src = activeVideo.embed_url;
+    }
     iframe.style.display = "block";
   }
 
@@ -1030,12 +1129,17 @@ function openVideo(id) {
 
 function closeVideo() {
   const iframe = document.getElementById("videoIframe");
-  if (iframe) iframe.src = "";
+  if (iframe) {
+    iframe.src = "about:blank";
+    iframe.style.display = "none";
+  }
   const html5Player = document.getElementById("videoPlayerEl");
   if (html5Player) {
+    html5Player.onerror = null;
     html5Player.pause();
-    html5Player.currentTime = 0;
-    html5Player.src = "";
+    html5Player.removeAttribute("src");
+    html5Player.load();
+    html5Player.style.display = "none";
   }
 }
 
@@ -1054,6 +1158,12 @@ function launchQuizVideo() {
 
 // Open Quiz Player
 function openQuiz(id) {
+  if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement) {
+    if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+  }
+  if (activeQuiz && activeQuiz.id === id && document.getElementById("viewQuiz").style.display === "block") {
+    return;
+  }
   activeQuiz = allItems.find(item => item.id === id && item.type === "quiz");
   if (!activeQuiz) return;
 
@@ -1268,12 +1378,18 @@ function checkHash() {
   const hash = window.location.hash;
   if (hash.startsWith("#video=")) {
     const vidId = hash.replace("#video=", "");
-    openVideo(vidId);
+    if (!activeVideo || activeVideo.id !== vidId || document.getElementById("viewVideo").style.display !== "block") {
+      openVideo(vidId);
+    }
   } else if (hash.startsWith("#quiz=")) {
     const qId = hash.replace("#quiz=", "");
-    openQuiz(qId);
+    if (!activeQuiz || activeQuiz.id !== qId || document.getElementById("viewQuiz").style.display !== "block") {
+      openQuiz(qId);
+    }
   } else if (hash === "#grid") {
-    setViewMode("grid");
+    if (currentViewMode !== "grid") {
+      setViewMode("grid");
+    }
   }
 }
 window.addEventListener("hashchange", checkHash);
